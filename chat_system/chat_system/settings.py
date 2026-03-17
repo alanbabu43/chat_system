@@ -89,9 +89,9 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True
+        # This ensures it works locally with SQLite if no DATABASE_URL is found
+        default='sqlite:///db.sqlite3', 
+        conn_max_age=600
     )
 }
 
