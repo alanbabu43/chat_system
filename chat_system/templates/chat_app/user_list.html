@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Contacts — ChatApp{% endblock %}
+{% block extra_css %}
+<style>
+    .page-wrapper { max-width: 520px; margin: 0 auto; padding: 24px 16px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .page-header h2 { font-size: 1.3rem; font-weight: 700; }
+    .user-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        background: var(--white);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        box-shadow: var(--shadow);
+        text-decoration: none;
+        color: var(--gray-800);
+        transition: transform 0.14s, box-shadow 0.14s;
+    }
+    .user-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); text-decoration: none; }
+    .avatar {
+        width: 46px; height: 46px;
+        background: linear-gradient(135deg, #4f6ef7, #a78bfa);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; font-weight: 700; color: #fff;
+        flex-shrink: 0;
+    }
+    .user-info .name { font-weight: 600; font-size: 0.95rem; }
+    .user-info .status { font-size: 0.78rem; color: var(--gray-600); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--online); display: inline-block; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-600); }
+    .empty-state p { margin-top: 10px; font-size: 0.9rem; }
+    .current-user-badge {
+        display: flex; align-items: center; gap: 10px;
+        background: var(--white); border-radius: 10px; padding: 10px 16px;
+        margin-bottom: 20px; box-shadow: var(--shadow);
+        font-size: 0.88rem; color: var(--gray-600);
+    }
+    .current-user-badge .name { font-weight: 600; color: var(--gray-800); }
+    .unread-badge {
+        margin-left: auto;
+        background: #e74c3c;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        padding: 0 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+    <div class="current-user-badge">
+        <div class="avatar" style="width:34px;height:34px;font-size:0.85rem;">{{ request.user.username|first|upper }}</div>
+        <div>Logged in as <span class="name">{{ request.user.username }}</span></div>
+        <a href="{% url 'logout' %}" class="btn btn-danger" style="margin-left:auto;padding:6px 14px;font-size:0.82rem;">Logout</a>
+    </div>
+
+    <div class="page-header">
+        <h2>💬 Chats</h2>
+        <span style="font-size:0.82rem;color:var(--gray-600);">{{ users|length }} user{{ users|length|pluralize }}</span>
+    </div>
+
+    {% if users %}
+        {% for user in users %}
+        <a href="{% url 'chat' user.id %}" class="user-card">
+            <div class="avatar">{{ user.username|first|upper }}</div>
+            <div class="user-info">
+                <div class="name">{{ user.username }}</div>
+                <div class="status">
+                    {% if user.is_online %}
+                        <span class="online-dot"></span> Online
+                    {% else %}
+                        <span>⏱</span>
+                        {% if user.last_seen %}
+                            Last seen {{ user.last_seen|timesince }} ago
+                        {% else %}
+                            Never active
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% if user.unread_count %}
+                <span class="unread-badge">{{ user.unread_count }}</span>
+            {% else %}
+                <span style="margin-left:auto;color:var(--gray-400);font-size:1.1rem;">›</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div style="font-size:3rem;">👤</div>
+            <p>No other users registered yet.<br>Share the link and invite someone!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
