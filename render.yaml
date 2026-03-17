@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: chat-app
+    env: python
+    buildCommand: "bash ./build.sh"
+    startCommand: "daphne -b 0.0.0.0 -p $PORT chat_system.asgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.5
+      - key: SECRET_KEY
+        generateValue: true
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: chat-redis
+          property: connectionString
+
+  - type: redis
+    name: chat-redis
+    ipAllowList: [] # only allow internal connections
