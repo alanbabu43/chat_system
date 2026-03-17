@@ -12,6 +12,7 @@ A real-time chat application built with Django and Django Channels, enabling ins
 - **Unread message count**: show unread message count in the chat list.
 - **online status**: show online status of users.
 - **last seen**: show last seen time of users.
+- **typing indicator**: show typing indicator when a user is typing.
 
 ## Tech Stack
 
