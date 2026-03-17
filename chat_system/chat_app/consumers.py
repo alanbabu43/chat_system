@@ -57,6 +57,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        elif msg_type == 'typing':
+            is_typing = data.get('is_typing', False)
+            await self.channel_layer.group_send(
+                self.room_name,
+                {
+                    'type': 'user_typing',
+                    'sender_id': self.user.id,
+                    'is_typing': is_typing,
+                }
+            )
+
         elif msg_type == 'read_receipt':
             message_ids = data.get('message_ids', [])
             if message_ids:
@@ -113,6 +124,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'message_deleted',
             'message_id': event['message_id'],
+        }))
+
+    async def user_typing(self, event):
+        """Broadcast typing status to room."""
+        await self.send(text_data=json.dumps({
+            'type': 'typing',
+            'sender_id': event['sender_id'],
+            'is_typing': event['is_typing'],
         }))
 
     @database_sync_to_async

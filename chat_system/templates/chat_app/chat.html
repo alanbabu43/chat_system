@@ -54,6 +54,25 @@
     .delete-msg-btn:hover { color: #ef4444; opacity: 1; }
     .date-sep { text-align: center; font-size: 0.75rem; color: var(--gray-400); margin: 8px 0; user-select: none; }
 
+    /* Typing Indicator */
+    .typing-indicator {
+        display: none; align-items: center; gap: 4px; padding: 10px 14px;
+        background: var(--white); border-radius: 18px; border-bottom-left-radius: 4px;
+        width: max-content; margin-top: 4px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .typing-indicator span {
+        width: 6px; height: 6px; background-color: var(--gray-400);
+        border-radius: 50%; display: inline-block;
+        animation: typing 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
     /* Input */
     .chat-input-area {
         padding: 12px 16px; background: var(--white);
@@ -120,6 +139,15 @@
         {% empty %}
         <div class="date-sep">No messages yet. Say hello! 👋</div>
         {% endfor %}
+        
+        <!-- Typing Indicator Container -->
+        <div class="msg-row received" id="typing-container" style="display: none;">
+            <div>
+                <div class="typing-indicator" id="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Input -->
@@ -140,6 +168,8 @@
 
     let socket;
     let reconnectDelay = 1000;
+    let typingTimer;
+    let isTyping = false;
 
     function connect() {
         socket = new WebSocket(wsUrl);
@@ -178,6 +208,19 @@
                     row.style.margin = '0';
                     row.style.overflow = 'hidden';
                     setTimeout(() => row.remove(), 250);
+                }
+            } else if (data.type === 'typing') {
+                if (data.sender_id !== currentUserId) {
+                    const typingContainer = document.getElementById('typing-container');
+                    const typingIndicator = document.getElementById('typing-indicator');
+                    if (data.is_typing) {
+                        typingContainer.style.display = 'flex';
+                        typingIndicator.style.display = 'flex';
+                        scrollToBottom();
+                    } else {
+                        typingContainer.style.display = 'none';
+                        typingIndicator.style.display = 'none';
+                    }
                 }
             }
         };
@@ -233,16 +276,36 @@
         const content = input.value.trim();
         if (!content || !socket || socket.readyState !== WebSocket.OPEN) return;
         socket.send(JSON.stringify({ type: 'message', content }));
+        
+        // Stop typing indicator instantly when sending
+        clearTimeout(typingTimer);
+        socket.send(JSON.stringify({ type: 'typing', is_typing: false }));
+        isTyping = false;
+        
         input.value = '';
         input.focus();
+        sendBtn.disabled = true;
     }
 
     sendBtn.addEventListener('click', sendMessage);
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
+    
     input.addEventListener('input', () => {
         sendBtn.disabled = input.value.trim() === '';
+        
+        // Handle Typing Indicator
+        if (!isTyping) {
+            isTyping = true;
+            socket.send(JSON.stringify({ type: 'typing', is_typing: true }));
+        }
+        
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            isTyping = false;
+            socket.send(JSON.stringify({ type: 'typing', is_typing: false }));
+        }, 1500);
     });
     sendBtn.disabled = true;
 
