@@ -28,7 +28,8 @@ SECRET_KEY = 'django-insecure-whvtg-6r@f^gfst+9_i+_d-d8_)nz=qw%)p_#^)%!_4uot%@+c
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['chat-system-wrdk.onrender.com', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://chat-system-wrdk.onrender.com']
 # Application definition
 
 INSTALLED_APPS = [
@@ -95,9 +96,7 @@ DATABASES = {
     )
 }
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com"
-]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
